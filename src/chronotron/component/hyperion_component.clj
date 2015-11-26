@@ -32,5 +32,30 @@
   (map->Hyperion-component (select-keys config [:host :port :priority])))
 
 (defn queue-command [hyperion-component command-data]
-  (>!! (:in hyperion-component) command-data)
-  (<!! (:out hyperion-component)))
+                                        ; enhance the command with the
+                                        ; service's priority if it's a
+                                        ; command which requires
+                                        ; priority AND the command
+                                        ; data doesn't include it.
+  (let [priority-commands #{"color" "clear" "effect"}
+        priority-command (if (and (contains? priority-commands (:command command-data))
+                                  (not (contains? command-data :priority)))
+                           (assoc command-data :priority (:priority (:hyperion-service hyperion-component)))
+                           command-data)]
+    (>!! (:in hyperion-component) priority-command)
+    (<!! (:out hyperion-component))))
+
+(defn server-info [hyperion-component]
+  (queue-command hyperion-component {:command "serverinfo"}))
+
+(defn clear [hyperion-component]
+  (queue-command hyperion-component {:command "clear" }))
+
+(defn clearall [hyperion-component]
+  (queue-command hyperion-component {:command "clearall"}))
+
+(defn set-color [hyperion-component color]
+  (queue-command hyperion-component {:command "color" :color color}))
+
+(defn effect [hyperion-component effect-name]
+  (queue-command hyperion-component {:command "effect" :name effect-name}))
