@@ -7,7 +7,7 @@
 ;; https://blog.interlinked.org/programming/clojure_rest.html
 
 (def welcome-page
-  (io/resource "chronotron/endpoint/hyperion_api/welcome.html"))
+  (io/resource "chronotron/endpoint/hyperion_api/hyperion.html"))
 
 ;;curl  192.168.1.230:3000/hyperion -H "Content-Type: application/json" -d '{ "command" : "color", "color" : [255,0,0], "priority" : 450 }'
 

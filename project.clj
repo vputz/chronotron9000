@@ -17,12 +17,14 @@
                  [ring/ring-mock "0.3.0"]
                  [org.slf4j/slf4j-nop "1.7.12"]
                  [org.clojure/data.json "0.2.6"]
+                 [org.omcljs/om "0.9.0"]
                  [org.webjars/normalize.css "3.0.2"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/core.async "0.2.374"]]
   :plugins [[lein-environ "1.0.1"]
             [lein-gen "0.2.2"]
             [lein-cljsbuild "1.1.0"]
+            [lein-figwheel "0.5.0-2"]
             [cider/cider-nrepl "0.10.0-SNAPSHOT"]]
   :generators [[duct/generators "0.4.5"]]
   :duct {:ns-prefix chronotron}
@@ -32,10 +34,12 @@
   :prep-tasks [["javac"] ["cljsbuild" "once"] ["compile"]]
   :cljsbuild
   {:builds
-   {:main {:jar true
-           :source-paths ["src"]
-           :compiler {:output-to "target/cljsbuild/chronotron/public/js/main.js"
-                      :optimizations :advanced}}}}
+   {:hyperion-dev {:jar true
+               :figwheel { :on-jsload "om-tut.core/on-js-reload"}
+                   :source-paths ["src"]
+
+               :compiler {:output-to "target/cljsbuild/chronotron/public/js/hyperion.js"
+                          :optimizations :none}}}}
   :aliases {"gen"   ["generate"]
             "setup" ["do" ["generate" "locals"]]}
   :profiles
@@ -52,7 +56,7 @@
                                   [org.clojure/tools.namespace "0.2.11"]
                                   [eftest "0.1.0"]
                                   [kerodon "0.7.0"]
-                                  [duct/figwheel-component "0.3.0"]
+                                  [duct/figwheel-component "0.3.1"]
                                   [figwheel "0.4.0"]]
                    :env {:port 3000}}
    :project/test  {}})
