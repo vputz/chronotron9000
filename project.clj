@@ -18,6 +18,7 @@
                  [org.slf4j/slf4j-nop "1.7.12"]
                  [org.clojure/data.json "0.2.6"]
                  [org.omcljs/om "0.9.0"]
+                 [cljs-ajax "0.5.1"]
                  [org.webjars/normalize.css "3.0.2"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.clojure/core.async "0.2.374"]]
@@ -35,11 +36,11 @@
   :cljsbuild
   {:builds
    {:hyperion-dev {:jar true
-               :figwheel { :on-jsload "om-tut.core/on-js-reload"}
+                   :figwheel { :on-jsload "chronotron.hyperion/on-js-reload"}
                    :source-paths ["src"]
-
-               :compiler {:output-to "target/cljsbuild/chronotron/public/js/hyperion.js"
-                          :optimizations :none}}}}
+                   
+                   :compiler {:output-to "target/cljsbuild/chronotron/public/js/hyperion.js"
+                              :optimizations :none}}}}
   :aliases {"gen"   ["generate"]
             "setup" ["do" ["generate" "locals"]]}
   :profiles
