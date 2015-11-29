@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [clojure.java.io :as io]
             [clojure.tools.logging :as log]
+            [ring.util.response :as r]
             [chronotron.component.hyperion-component :as hyperion]))
 
 ;; https://blog.interlinked.org/programming/clojure_rest.html
@@ -23,12 +24,16 @@
             (let [hc (:hyperion config)]
               (defroutes hyperion-routes
                 (POST "/command" {params :params} (api-command hc params))
-                (POST "/color" {params :params} (hyperion/set-color hc (get params "color")))
+                (POST "/color" {params :params}
+                      (hyperion/set-color hc (get params "color")))
                 (POST "/clear" {params :params} (hyperion/clear hc))
                 (GET "/clear" [] (hyperion/clear hc))
                 (POST "/clearall" {params :params} (hyperion/clearall hc))
                 (GET "/clearall" [] (hyperion/clearall hc))
-                (GET "/serverinfo" [] (hyperion/server-info (:hyperion config)))
+                (GET "/serverinfo" [] (->
+                                       (r/response (hyperion/server-info (:hyperion config)))
+                                       (r/header "Content-type" "application/json")
+                                       ))
                 (GET "/" [] (str "Post JSON command to /hyperion/command")))))
    )
   )
