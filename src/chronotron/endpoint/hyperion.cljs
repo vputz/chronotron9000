@@ -1,5 +1,5 @@
 (ns ^:figwheel-always chronotron.hyperion
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [<! put! chan]]
@@ -14,6 +14,14 @@
 (defonce app-state (atom {:text "Placeholder"
                           :host "localhost"
                           :port 3000}))
+
+(def command-chan (chan))
+
+(defn queue-command
+  ([cmd]
+   (put! command-chan {:command cmd}))
+  ([cmd params]
+   (put! command-chan {:command cmd :params params})))
 
 (defn set-app-effects [serverinfo]
   (let [effects (:effects (:info serverinfo))]
@@ -44,7 +52,6 @@
                           (:host @app-state) ":" (:port @app-state)
                           path))
 
-(go (set-app-effects (<! (get-chan (app-url "/hyperion/serverinfo")))))
 
 (defn color-view [data owner]
 (reify om/IRender
@@ -52,8 +59,8 @@
        (dom/div {}
                 (dom/button #js {:id "clear"
                                  :onClick (fn [e]
-                                            (prn "Clear")
-                                            (POST "/hyperion/clear"))}
+                                            (queue-command "clear")
+                                            (.stopPropagation e))}
                             (str "Clear"))
                 (dom/p {})
                 (dom/input #js {:type "text" :ref "red" :value (:color-red data)})
@@ -67,9 +74,8 @@
                 (dom/p {})
                 (dom/button #js {:id "set-color"
                                  :onClick (fn [e]
-                                            (prn "Set color")
-                                            (POST "/hyperion/color" {:format :json
-                                                                     :params {:color [255 0 0]}}))}
+                                            (queue-command "color" [255 0 0])
+                                            (.stopPropagation e))}
                             (str "Set Color"))
                 )
        
@@ -78,16 +84,25 @@
        ;;              ))
        )))
 
+(defn handle-change [e owner {:keys [selected-effect]}]
+  (om/set-state! owner :selected-effect (.. e -target -value)))
+
 (defn effect-view [data owner]
-  (reify om/IRender
-    (render [_]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:selected_effect nil})
+    om/IRenderState
+    (render-state [this state]
       (dom/div {}
-               (dom/select {:id "effect"}
+               (dom/select #js {:id "effect"
+                            :value (:selected_effect state)
+                            :onChange #(handle-change % owner state)}
                            (for [effect (:effects data)]
                              (dom/option {:react-key (:name effect)} (:name effect))))
                (dom/button #js {:id "send-effect"
                                 :onClick (fn [e]
-                                           (prn "Send effect"))
+                                           (queue-command "effect" (:selected-effect state)))
                                 :react-key "send-effect"}
                            (str "Send Effect")))
       ;; (dom/ul {} (for [effect (:effects data)]
@@ -113,3 +128,19 @@
   (prn "reload")
 )
  
+(defn init [] 
+  (go (set-app-effects (<! (get-chan (app-url "/hyperion/serverinfo"))))))
+
+(defmulti handle-command :command)
+(defmethod handle-command "color" [cmd]
+  (POST "/hyperion/color" {:format :json
+                           :params {:color (:params cmd)}}))
+(defmethod handle-command "clear" [cmd]
+  (POST "/hyperion/clear"))
+(defmethod handle-command "effect" [cmd]
+  (POST "/hyperion/effect" {:format :json
+                            :params {:name (:params cmd)}}))
+(init)
+(go-loop []
+  (handle-command (<! command-chan))
+  (recur))

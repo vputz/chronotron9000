@@ -45,4 +45,5 @@
   (send-command hs "clearall" {}))
 
 (defn effect [hs effect-name]
-  (send-command hs "effect" {:effect {:name effect-name} :priority (:priority hs)}))
+  (prn effect-name)
+  (send-command hs "etffect" {:effect {:name effect-name} :priority (:priority hs)}))

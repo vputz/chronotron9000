@@ -58,4 +58,4 @@
   (queue-command hyperion-component {:command "color" :color color}))
 
 (defn effect [hyperion-component effect-name]
-  (queue-command hyperion-component {:command "effect" :name effect-name}))
+  (queue-command hyperion-component {:command "effect" :effect {:name effect-name}}))

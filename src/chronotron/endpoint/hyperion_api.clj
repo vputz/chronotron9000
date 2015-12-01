@@ -26,6 +26,8 @@
                 (POST "/command" {params :params} (api-command hc params))
                 (POST "/color" {params :params}
                       (hyperion/set-color hc (get params "color")))
+                (POST "/effect" {params :params}
+                      (hyperion/effect hc (get params "name")))
                 (POST "/clear" {params :params} (hyperion/clear hc))
                 (GET "/clear" [] (hyperion/clear hc))
                 (POST "/clearall" {params :params} (hyperion/clearall hc))
